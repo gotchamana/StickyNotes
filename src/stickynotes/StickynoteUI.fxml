@@ -22,7 +22,7 @@
                   <Font size="18.0" />
                </font>
             </TextArea>
-            <ImageView fx:id="imgViewResizer" fitHeight="16.0" fitWidth="36.0" nodeOrientation="INHERIT" onMouseDragged="#handleImgViewResizerMouseDrag" onMousePressed="#handleImgViewResizerMousePress" onMouseReleased="#handleImgViewResizerMouseRelease" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="imgViewResizer" fitHeight="16.0" fitWidth="36.0" nodeOrientation="INHERIT" onMouseDragged="#handleImgViewResizerMouseDrag" onMouseReleased="#handleImgViewResizerMouseRelease" pickOnBounds="true" preserveRatio="true">
                <cursor>
                   <Cursor fx:constant="SE_RESIZE" />
                </cursor>

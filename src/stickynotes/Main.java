@@ -6,8 +6,9 @@
 package stickynotes;
 
 import java.io.DataInputStream;
-import java.io.File;
+import java.io.DataOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,31 +21,28 @@ import javafx.stage.Stage;
  */
 public class Main extends Application {
 
-    static Map<String, Integer> stageMap = new HashMap<>();
-
-    // Set the parent directory
-    static File savaData = new File(System.getProperty("user.dir") + "/StickynotesData");
-
-    Map<Integer, Map<Integer, Object>> stageDataMap = new HashMap<>();
-
     @Override
     public void start(Stage stage) throws Exception {
         loadStageData();
 
-        if (stageDataMap.isEmpty()) {
-            new Stickynote();
+        if (Stickynote.stageDataMap.isEmpty()) {
+            Stickynote.stickynoteList.add(new Stickynote());
         } else {
-            for (Map.Entry<Integer, Map<Integer, Object>> entry : stageDataMap.entrySet()) {
-                double x = 0, y = 0, width = 0, height = 0;
+            for (Map.Entry<Integer, Map<Integer, Object>> entry : Stickynote.stageDataMap.entrySet()) {
+                // Set the default value
+                double x = Stickynote.DEFAULT_X, y = Stickynote.DEFAULT_Y;
+                double width = Stickynote.DEFAULT_WIDTH, height = Stickynote.DEFAULT_HEIGHT;
                 String text = "";
 
-                Integer id = entry.getKey();
+                int id = entry.getKey();
                 Map<Integer, Object> dataMap = entry.getValue();
 
-                for (Map.Entry<Integer, Object> entry1 : dataMap.entrySet()) {
-                    Integer dataType = entry1.getKey();
-                    Object data = entry1.getValue();
+                for (Map.Entry<Integer, Object> innerEntry : dataMap.entrySet()) {
+                    Integer dataType = innerEntry.getKey();
+                    Object data = innerEntry.getValue();
 
+                    // Filter the data
+                    // 0 represents X's coordinate, 1 represents Y's coordinate, 2 represents width, 3 represents height, 4 represents text
                     switch (dataType) {
                         case 0:
                             x = (Double) data;
@@ -68,8 +66,11 @@ public class Main extends Application {
                     }
                 }
 
-                new Stickynote(id, x, y, width, height, text);
+                if (id != -1) {
+                    Stickynote.stickynoteList.add(new Stickynote(id, x, y, width, height, text));
+                }
             }
+            overrideOldStageData();
         }
     }
 
@@ -80,29 +81,69 @@ public class Main extends Application {
         launch(args);
     }
 
-    public void loadStageData() throws IOException {
+    public void loadStageData() {
         // Get the stage's data
-        if (savaData.exists()) {
-            try (DataInputStream input = new DataInputStream(new FileInputStream(savaData))) {
+        if (Stickynote.saveFile.exists()) {
+            try (DataInputStream input = new DataInputStream(new FileInputStream(Stickynote.saveFile))) {
+                // Read data
                 while (input.available() != 0) {
+                    // Get the id
                     int id = input.readInt();
+
+                    // Get the data type
                     int dataType = input.readInt();
+
+                    // Get the data
                     Object data;
 
-                    if (dataType != 4) {
+                    if (dataType != StickynoteController.dataTypeMap.get("text")) {
                         data = input.readDouble();
                     } else {
                         data = input.readUTF();
                     }
 
-                    Map<Integer, Object> map = stageDataMap.get(id);
+                    Map<Integer, Object> innerMap = Stickynote.stageDataMap.get(id);
 
-                    if (map == null) {
-                        map = new HashMap<>();
-                        stageDataMap.put(id, map);
+                    if (innerMap == null) {
+                        innerMap = new HashMap<>();
+                        Stickynote.stageDataMap.put(id, innerMap);
                     }
 
-                    map.put(dataType, data);
+                    // Write data into innerMap
+                    innerMap.put(dataType, data);
+                }
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void overrideOldStageData() {
+        // Delete the old data
+        Stickynote.saveFile.delete();
+
+        for (Map.Entry<Integer, Map<Integer, Object>> entry : Stickynote.stageDataMap.entrySet()) {
+            int id = entry.getKey();
+            Map<Integer, Object> innerMap = entry.getValue();
+
+            for (Map.Entry<Integer, Object> innerEntry : innerMap.entrySet()) {
+                int dataType = innerEntry.getKey();
+                Object data = innerEntry.getValue();
+
+                try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
+                    // Rewrite the new data
+                    output.writeInt(id);
+                    output.writeInt(dataType);
+
+                    if (data instanceof Double) {
+                        output.writeDouble((Double) data);
+                    } else {
+                        output.writeUTF((String) data);
+                    }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
                 }
             }
         }
