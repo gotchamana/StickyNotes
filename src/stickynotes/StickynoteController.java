@@ -5,10 +5,7 @@
  */
 package stickynotes;
 
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
@@ -34,13 +31,14 @@ import javafx.stage.WindowEvent;
  *
  * @author shootingstar
  */
-public class FXMLDocumentController implements Initializable {
+public class StickynoteController implements Initializable {
+
+    int stageId;
 
     // Set the variables about the stage's movement
     double xOffset = 0, yOffset = 0;
 
-    // Set the parent directory
-    File parentDir = new File(System.getProperty("user.dir") + "/StickynotesData");
+    String text;
 
     // Set the stage's images
     Image close, settings, add, lock, unlock, resize;
@@ -76,14 +74,14 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     ImageView imgViewResizer = new ImageView();
 
+    public StickynoteController(int id, Stage stage, String text) {
+        stageId = id;
+        this.stage = stage;
+        this.text = text;
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // Check the parent directory if exist
-        // if not, create it
-        if (!parentDir.exists()) {
-            parentDir.mkdir();
-        }
-
         // Loading the images
         close = new Image(getClass().getResource("Icons/close.png").toExternalForm());
         settings = new Image(getClass().getResource("Icons/gear.png").toExternalForm());
@@ -100,7 +98,6 @@ public class FXMLDocumentController implements Initializable {
         imgViewResizer.setImage(resize);
 
         // Set the textarea's text
-        String text = loadTextData();
         txtArea.setText(text);
 
         txtArea.focusedProperty().addListener(new ChangeListener<Boolean>() {
@@ -138,7 +135,7 @@ public class FXMLDocumentController implements Initializable {
     // Handle the close button's OnAction event
     @FXML
     public void handleBtnClose() {
-        getStageRef();
+//        getStageRef();
 
         // Close the stage
         Event.fireEvent(stage, new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
@@ -148,7 +145,7 @@ public class FXMLDocumentController implements Initializable {
     @FXML
     public void handleBtnAdd() {
         try {
-            new NewStickynote();
+            new Stickynote();
         } catch (Exception ex) {
             System.out.println(ex);
         }
@@ -170,7 +167,7 @@ public class FXMLDocumentController implements Initializable {
     // Handle the title bar's (GridPane) OnMousePressed event
     @FXML
     public void handleTitleBarMousePress(MouseEvent e) {
-        getStageRef();
+//        getStageRef();
 
         // Get the mouse's location on the scene
         xOffset = e.getSceneX();
@@ -185,21 +182,56 @@ public class FXMLDocumentController implements Initializable {
         stage.setY(e.getScreenY() - yOffset);
     }
 
+    // Handle the title bar's (GridPane) OnMouseReleased event
+    @FXML
+    public void handleTitleBarMouseRelease(MouseEvent e) {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Main.savaData, true))) {
+            // Save the location
+            output.writeInt(stageId);
+            output.writeInt(0);
+            output.writeDouble(stage.getX());
+
+            output.writeInt(stageId);
+            output.writeInt(1);
+            output.writeDouble(stage.getY());
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
+    }
+
     // Handle the resizer's (ImageView) OnMousePressed event
     @FXML
     public void handleImgViewResizerMousePress() {
-        getStageRef();
+//        getStageRef();
     }
 
     // Handle the resizer's (ImageView) OnMouseDragged event
     @FXML
-    public void handleImgViewResizerMouseDrag(MouseEvent e) {
+    public void handleImgViewResizerMouseDrag(MouseEvent e
+    ) {
         // Change the stage's size
         stage.setWidth(e.getSceneX());
         stage.setHeight(e.getSceneY());
     }
 
-    public String loadTextData() {
+    // Handle the resizer's (ImageView) OnMouseReleased event
+    @FXML
+    public void handleImgViewResizerMouseRelease() {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Main.savaData, true))) {
+            // Save the size
+            output.writeInt(stageId);
+            output.writeInt(2);
+            output.writeDouble(stage.getWidth());
+            
+            output.writeInt(stageId);
+            output.writeInt(3);
+            output.writeDouble(stage.getHeight());
+        } catch (IOException ex) {
+
+        }
+    }
+
+    /*public String loadTextData() {
         String text = "";
 
         // Get the text data
@@ -218,11 +250,12 @@ public class FXMLDocumentController implements Initializable {
         }
 
         return text;
-    }
-
+    }*/
     public void saveText() {
-        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(new File(parentDir, "TextData")))) {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Main.savaData, true))) {
             // Save the text
+            output.writeInt(stageId);
+            output.writeInt(4);
             output.writeUTF(txtArea.getText());
         } catch (IOException ex) {
             System.out.println(ex);
