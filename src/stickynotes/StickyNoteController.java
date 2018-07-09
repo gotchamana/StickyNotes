@@ -19,14 +19,18 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBase;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -35,7 +39,7 @@ import javafx.stage.WindowEvent;
  *
  * @author shootingstar
  */
-public class StickynoteController implements Initializable {
+public class StickyNoteController implements Initializable {
 
     // For storing the data type's number
     static Map<String, Integer> dataTypeMap = new HashMap<>();
@@ -45,10 +49,14 @@ public class StickynoteController implements Initializable {
     double xOffset, yOffset;
 
     String text;
+    String font, fontColor, backgroundColor, textAreaColor;
     Stage stage;
 
     // Set the stage's images
     Image close, settings, add, lock, unlock, resize;
+
+    @FXML
+    BorderPane borderPane = new BorderPane();
 
     // Get the title bar (GridPane)
     @FXML
@@ -85,12 +93,23 @@ public class StickynoteController implements Initializable {
         dataTypeMap.put("width", 2);
         dataTypeMap.put("height", 3);
         dataTypeMap.put("text", 4);
+
+        dataTypeMap.put("font", 5);
+        dataTypeMap.put("font-color", 6);
+        dataTypeMap.put("background-color", 7);
+        dataTypeMap.put("textArea-color", 8);
     }
 
-    public StickynoteController(int id, Stage stage, String text) {
+    public StickyNoteController(int id, Stage stage, String text,
+            String font, String fontColor, String backgroundColor, String textAreaColor) {
         this.id = id;
         this.stage = stage;
         this.text = text;
+
+        this.font = font;
+        this.fontColor = fontColor;
+        this.backgroundColor = backgroundColor;
+        this.textAreaColor = textAreaColor;
     }
 
     @Override
@@ -112,6 +131,9 @@ public class StickynoteController implements Initializable {
 
         // Set the textarea's text
         txtArea.setText(text);
+        txtArea.setStyle(font + fontColor + backgroundColor + textAreaColor + StickyNote.TXTAREA_BACKGROUND_COLOR);
+
+        borderPane.setStyle(backgroundColor);
 
         // Handle the TextArea's OnFocused event
         txtArea.focusedProperty().addListener(new ChangeListener<Boolean>() {
@@ -150,17 +172,28 @@ public class StickynoteController implements Initializable {
     // Handle the close button's OnAction event
     @FXML
     public void handleBtnClose() {
-        deleteStickynote();
+        Alert alert = new Alert(Alert.AlertType.WARNING, "Do you want to delete this Sticky-Note?",
+                ButtonType.YES, ButtonType.NO);
 
-        // Close the stage
-        Event.fireEvent(stage, new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        alert.setTitle("Delete this Sticky-Note");
+        alert.setHeaderText(null);
+        alert.initOwner(stage);
+
+        alert.showAndWait().ifPresent((ButtonType t) -> {
+            if (t == ButtonType.YES) {
+                // Close the stage
+                Event.fireEvent(stage, new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+                deleteStickynote();
+            }
+        });
     }
 
     // Handle the add button's OnAction event
     @FXML
     public void handleBtnAdd() {
         // Add a new stage
-        Stickynote.stickynoteList.add(new Stickynote());
+        StickyNote.stickynoteList.add(new StickyNote());
     }
 
     // Handle the lock ToggleButton's OnAction event
@@ -173,6 +206,56 @@ public class StickynoteController implements Initializable {
         } else {
             tgeBtnLock.setGraphic(new ImageView(lock));
             txtArea.setEditable(false);
+        }
+    }
+
+    @FXML
+    public void handleBtnSettings() {
+        Map<String, String> settingsMap = new SettingDialog(stage, font, fontColor, backgroundColor, textAreaColor).getSettings();
+
+        if (settingsMap != null) {
+            font = settingsMap.get("font");
+            fontColor = settingsMap.get("font-color");
+            textAreaColor = settingsMap.get("textArea-color");
+            backgroundColor = settingsMap.get("background-color");
+
+            txtArea.setStyle(font + fontColor + textAreaColor + StickyNote.TXTAREA_BACKGROUND_COLOR);
+            borderPane.setStyle(backgroundColor);
+
+            try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
+                output.writeInt(id);
+                output.writeInt(dataTypeMap.get("font"));
+                output.writeUTF(font);
+
+                output.writeInt(id);
+                output.writeInt(dataTypeMap.get("font-color"));
+                output.writeUTF(fontColor);
+
+                output.writeInt(id);
+                output.writeInt(dataTypeMap.get("background-color"));
+                output.writeUTF(backgroundColor);
+
+                output.writeInt(id);
+                output.writeInt(dataTypeMap.get("textArea-color"));
+                output.writeUTF(textAreaColor);
+
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    @FXML
+    public void handleTitleBarMouseEnter() {
+        for (Node node : titleBar.getChildren()) {
+            node.setVisible(true);
+        }
+    }
+
+    @FXML
+    public void handleTitleBarMouseExit() {
+        for (Node node : titleBar.getChildren()) {
+            node.setVisible(false);
         }
     }
 
@@ -213,12 +296,11 @@ public class StickynoteController implements Initializable {
     }
 
     public void deleteStickynote() {
-        // Decrease the total number
-        Stickynote.number--;
+        StickyNote.stageDataMap = new HashMap<>();
 
         // Get the stage's data
-        if (Stickynote.saveFile.exists()) {
-            try (DataInputStream input = new DataInputStream(new FileInputStream(Stickynote.saveFile))) {
+        if (StickyNote.saveFile.exists()) {
+            try (DataInputStream input = new DataInputStream(new FileInputStream(StickyNote.saveFile))) {
                 // Read data
                 while (input.available() != 0) {
                     // Get the id
@@ -230,17 +312,17 @@ public class StickynoteController implements Initializable {
                     // Get the data
                     Object data;
 
-                    if (dataType != StickynoteController.dataTypeMap.get("text")) {
+                    if (dataType < StickyNoteController.dataTypeMap.get("text")) {
                         data = input.readDouble();
                     } else {
                         data = input.readUTF();
                     }
 
-                    Map<Integer, Object> innerMap = Stickynote.stageDataMap.get(id);
+                    Map<Integer, Object> innerMap = StickyNote.stageDataMap.get(id);
 
                     if (innerMap == null) {
                         innerMap = new HashMap<>();
-                        Stickynote.stageDataMap.put(id, innerMap);
+                        StickyNote.stageDataMap.put(id, innerMap);
                     }
 
                     // Write data into innerMap
@@ -253,24 +335,19 @@ public class StickynoteController implements Initializable {
         }
 
         // Delete the old data
-        Stickynote.saveFile.delete();
+        StickyNote.saveFile.delete();
 
-        for (Map.Entry<Integer, Map<Integer, Object>> entry : Stickynote.stageDataMap.entrySet()) {
-            int id = entry.getKey();
+        for (Map.Entry<Integer, Map<Integer, Object>> entry : StickyNote.stageDataMap.entrySet()) {
+            Integer id = entry.getKey();
             Map<Integer, Object> innerMap = entry.getValue();
 
             for (Map.Entry<Integer, Object> innerEntry : innerMap.entrySet()) {
                 int dataType = innerEntry.getKey();
                 Object data = innerEntry.getValue();
 
-                try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
+                try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
                     // Get rid of the stickynote wanting to delete
                     if (id != this.id) {
-                        // Decrease the id greater than the deleted stickynote's id
-                        if (id > this.id) {
-                            id--;
-                        }
-
                         // Rewrite the new data
                         output.writeInt(id);
                         output.writeInt(dataType);
@@ -287,26 +364,10 @@ public class StickynoteController implements Initializable {
                 }
             }
         }
-
-        int tmp = this.id;
-        for (Stickynote stickynote : Stickynote.stickynoteList) {
-
-            // Decrease the id greater than the deleted stickynote's id
-            if (stickynote.id > tmp) {
-                stickynote.id--;
-                stickynote.controller.id--;
-
-                // Get rid of the stickynote wanting to delete
-            } else if (stickynote.id == tmp) {
-                stickynote.id = -1;
-                stickynote.controller.id = -1;
-                this.id = -1;
-            }
-        }
     }
 
     public void saveText() {
-        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
             // Save the text
             output.writeInt(id);
             output.writeInt(dataTypeMap.get("text"));
@@ -318,7 +379,7 @@ public class StickynoteController implements Initializable {
     }
 
     public void saveLocation() {
-        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
             // Save the X's coordinate
             output.writeInt(id);
             output.writeInt(dataTypeMap.get("x"));
@@ -335,7 +396,7 @@ public class StickynoteController implements Initializable {
     }
 
     public void saveSize() {
-        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
+        try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
             // Save the width
             output.writeInt(id);
             output.writeInt(dataTypeMap.get("width"));

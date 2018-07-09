@@ -13,11 +13,11 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="250.0" prefWidth="250.0" style="-fx-background-color: #FFD200;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane fx:id="borderPane" prefHeight="250.0" prefWidth="250.0" style="-fx-background-color: #FFD200;" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
    <center>
       <StackPane alignment="BOTTOM_RIGHT" BorderPane.alignment="CENTER">
          <children>
-            <TextArea fx:id="txtArea" editable="false" prefHeight="200.0" prefWidth="200.0" style="-fx-control-inner-background: #FFD200; -fx-background-color: transparent;" wrapText="true">
+            <TextArea fx:id="txtArea" editable="false" focusTraversable="false" prefHeight="200.0" prefWidth="200.0" style="-fx-control-inner-background: #FFD200; -fx-background-color: transparent;" wrapText="true">
                <font>
                   <Font size="18.0" />
                </font>
@@ -31,7 +31,7 @@
       </StackPane>
    </center>
    <top>
-      <GridPane fx:id="titleBar" alignment="CENTER" onMouseDragged="#handleTitleBarMouseDrag" onMousePressed="#handleTitleBarMousePress" onMouseReleased="#handleTitleBarMouseRelease" BorderPane.alignment="CENTER">
+      <GridPane fx:id="titleBar" alignment="CENTER" onMouseDragged="#handleTitleBarMouseDrag" onMouseEntered="#handleTitleBarMouseEnter" onMouseExited="#handleTitleBarMouseExit" onMousePressed="#handleTitleBarMousePress" onMouseReleased="#handleTitleBarMouseRelease" BorderPane.alignment="CENTER">
          <columnConstraints>
             <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
             <ColumnConstraints halignment="RIGHT" hgrow="NEVER" />
@@ -50,7 +50,7 @@
                <tooltip>
                   <Tooltip text="Read-Only" />
                </tooltip></ToggleButton>
-            <Button fx:id="btnSettings" alignment="CENTER" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onMouseEntered="#handleBtnMouseEnter" onMouseExited="#handleBtnMouseExit" style="-fx-background-color: transparent;" text="Settings" GridPane.columnIndex="2">
+            <Button fx:id="btnSettings" alignment="CENTER" contentDisplay="GRAPHIC_ONLY" mnemonicParsing="false" onAction="#handleBtnSettings" onMouseEntered="#handleBtnMouseEnter" onMouseExited="#handleBtnMouseExit" style="-fx-background-color: transparent;" text="Settings" GridPane.columnIndex="2">
                <tooltip>
                   <Tooltip text="Settings" />
                </tooltip></Button>

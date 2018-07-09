@@ -6,11 +6,10 @@
 package stickynotes;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -23,18 +22,20 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Locale.setDefault(Locale.ENGLISH);
+        
         loadStageData();
 
-        if (Stickynote.stageDataMap.isEmpty()) {
-            Stickynote.stickynoteList.add(new Stickynote());
+        if (StickyNote.stageDataMap.isEmpty()) {
+            StickyNote.stickynoteList.add(new StickyNote());
         } else {
-            for (Map.Entry<Integer, Map<Integer, Object>> entry : Stickynote.stageDataMap.entrySet()) {
+            for (Map.Entry<Integer, Map<Integer, Object>> entry : StickyNote.stageDataMap.entrySet()) {
                 // Set the default value
-                double x = Stickynote.DEFAULT_X, y = Stickynote.DEFAULT_Y;
-                double width = Stickynote.DEFAULT_WIDTH, height = Stickynote.DEFAULT_HEIGHT;
-                String text = "";
+                double x = StickyNote.DEFAULT_X, y = StickyNote.DEFAULT_Y;
+                double width = StickyNote.DEFAULT_WIDTH, height = StickyNote.DEFAULT_HEIGHT;
+                String text = "", font = StickyNote.DEFAULT_FONT, fontColor = StickyNote.DEFAULT_FONT_COLOR,
+                        backgroundColor = StickyNote.DEFAULT_BACKGROUND_COLOR, textAreaColor = StickyNote.DEFAULT_TEXTARAE_COLOR;
 
-                int id = entry.getKey();
                 Map<Integer, Object> dataMap = entry.getValue();
 
                 for (Map.Entry<Integer, Object> innerEntry : dataMap.entrySet()) {
@@ -63,14 +64,27 @@ public class Main extends Application {
                         case 4:
                             text = (String) data;
                             break;
+
+                        case 5:
+                            font = (String) data;
+                            break;
+
+                        case 6:
+                            fontColor = (String) data;
+                            break;
+
+                        case 7:
+                            backgroundColor = (String) data;
+                            break;
+
+                        case 8:
+                            textAreaColor = (String) data;
+                            break;
                     }
                 }
 
-                if (id != -1) {
-                    Stickynote.stickynoteList.add(new Stickynote(id, x, y, width, height, text));
-                }
+                StickyNote.stickynoteList.add(new StickyNote(x, y, width, height, text, font, fontColor, backgroundColor, textAreaColor));
             }
-            overrideOldStageData();
         }
     }
 
@@ -83,8 +97,8 @@ public class Main extends Application {
 
     public void loadStageData() {
         // Get the stage's data
-        if (Stickynote.saveFile.exists()) {
-            try (DataInputStream input = new DataInputStream(new FileInputStream(Stickynote.saveFile))) {
+        if (StickyNote.saveFile.exists()) {
+            try (DataInputStream input = new DataInputStream(new FileInputStream(StickyNote.saveFile))) {
                 // Read data
                 while (input.available() != 0) {
                     // Get the id
@@ -96,17 +110,17 @@ public class Main extends Application {
                     // Get the data
                     Object data;
 
-                    if (dataType != StickynoteController.dataTypeMap.get("text")) {
+                    if (dataType < StickyNoteController.dataTypeMap.get("text")) {
                         data = input.readDouble();
                     } else {
                         data = input.readUTF();
                     }
 
-                    Map<Integer, Object> innerMap = Stickynote.stageDataMap.get(id);
+                    Map<Integer, Object> innerMap = StickyNote.stageDataMap.get(id);
 
                     if (innerMap == null) {
                         innerMap = new HashMap<>();
-                        Stickynote.stageDataMap.put(id, innerMap);
+                        StickyNote.stageDataMap.put(id, innerMap);
                     }
 
                     // Write data into innerMap
@@ -115,36 +129,10 @@ public class Main extends Application {
 
             } catch (IOException ex) {
                 ex.printStackTrace();
-            }
-        }
-    }
 
-    public void overrideOldStageData() {
-        // Delete the old data
-        Stickynote.saveFile.delete();
-
-        for (Map.Entry<Integer, Map<Integer, Object>> entry : Stickynote.stageDataMap.entrySet()) {
-            int id = entry.getKey();
-            Map<Integer, Object> innerMap = entry.getValue();
-
-            for (Map.Entry<Integer, Object> innerEntry : innerMap.entrySet()) {
-                int dataType = innerEntry.getKey();
-                Object data = innerEntry.getValue();
-
-                try (DataOutputStream output = new DataOutputStream(new FileOutputStream(Stickynote.saveFile, true))) {
-                    // Rewrite the new data
-                    output.writeInt(id);
-                    output.writeInt(dataType);
-
-                    if (data instanceof Double) {
-                        output.writeDouble((Double) data);
-                    } else {
-                        output.writeUTF((String) data);
-                    }
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+            } finally {
+                // Delete the old data
+                StickyNote.saveFile.delete();
             }
         }
     }
