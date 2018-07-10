@@ -1,4 +1,4 @@
 theme: jekyll-theme-architect
 show_downloads: [true]
 github:
-  zip_url: https://github.com/gotchamana/StickyNotes/releases/download/v0.9/StickyNote.jar
+  tar_url: https://github.com/gotchamana/StickyNotes/releases/download/v0.9/StickyNote.jar
