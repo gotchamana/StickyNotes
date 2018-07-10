@@ -50,11 +50,13 @@ public class StickyNoteController implements Initializable {
 
     String text;
     String font, fontColor, backgroundColor, textAreaColor;
+
     Stage stage;
 
     // Set the stage's images
     Image close, settings, add, lock, unlock, resize;
 
+    // Get the BorderPane
     @FXML
     BorderPane borderPane = new BorderPane();
 
@@ -131,8 +133,9 @@ public class StickyNoteController implements Initializable {
 
         // Set the textarea's text
         txtArea.setText(text);
-        txtArea.setStyle(font + fontColor + backgroundColor + textAreaColor + StickyNote.TXTAREA_BACKGROUND_COLOR);
 
+        // Set the CSS style
+        txtArea.setStyle(font + fontColor + backgroundColor + textAreaColor + StickyNote.TXTAREA_BACKGROUND_COLOR);
         borderPane.setStyle(backgroundColor);
 
         // Handle the TextArea's OnFocused event
@@ -209,19 +212,25 @@ public class StickyNoteController implements Initializable {
         }
     }
 
+    // Handle the settiings button's OnAction event
     @FXML
     public void handleBtnSettings() {
+        // Show the setting dialog and get settings from it
         Map<String, String> settingsMap = new SettingDialog(stage, font, fontColor, backgroundColor, textAreaColor).getSettings();
 
+        // If the data is not null, change the controllers' styles and write them into the file
         if (settingsMap != null) {
+            // Get the settings from the map
             font = settingsMap.get("font");
             fontColor = settingsMap.get("font-color");
             textAreaColor = settingsMap.get("textArea-color");
             backgroundColor = settingsMap.get("background-color");
 
+            // Set the style
             txtArea.setStyle(font + fontColor + textAreaColor + StickyNote.TXTAREA_BACKGROUND_COLOR);
             borderPane.setStyle(backgroundColor);
 
+            // Write the style into the file
             try (DataOutputStream output = new DataOutputStream(new FileOutputStream(StickyNote.saveFile, true))) {
                 output.writeInt(id);
                 output.writeInt(dataTypeMap.get("font"));
@@ -245,15 +254,19 @@ public class StickyNoteController implements Initializable {
         }
     }
 
+    // Handle the title bar's (GridPane) OnMouseEntered event
     @FXML
     public void handleTitleBarMouseEnter() {
+        // Display the controllers
         for (Node node : titleBar.getChildren()) {
             node.setVisible(true);
         }
     }
 
+    // Handle the title bar's (GridPane) OnMouseExited event
     @FXML
     public void handleTitleBarMouseExit() {
+        // Hide the controllers
         for (Node node : titleBar.getChildren()) {
             node.setVisible(false);
         }

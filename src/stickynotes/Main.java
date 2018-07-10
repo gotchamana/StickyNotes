@@ -22,8 +22,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // Change the default locale
         Locale.setDefault(Locale.ENGLISH);
-        
+
         loadStageData();
 
         if (StickyNote.stageDataMap.isEmpty()) {
@@ -109,7 +110,8 @@ public class Main extends Application {
 
                     // Get the data
                     Object data;
-
+                    
+                    // Filter the data by data type
                     if (dataType < StickyNoteController.dataTypeMap.get("text")) {
                         data = input.readDouble();
                     } else {

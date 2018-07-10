@@ -39,6 +39,7 @@ public class StickyNote {
     static final double DEFAULT_WIDTH = 250, DEFAULT_HEIGHT = 250;
     static final double DEFAULT_X = screenBounds.getWidth() / 2 - DEFAULT_WIDTH / 2, DEFAULT_Y = screenBounds.getHeight() / 2 - DEFAULT_HEIGHT / 2;
 
+    // Set the default CSS of the stage
     static final String DEFAULT_FONT = "-fx-font: 18.0 \"System\";", DEFAULT_FONT_COLOR = "-fx-text-inner-color: black;",
             DEFAULT_BACKGROUND_COLOR = "-fx-background-color: #FFD200;", DEFAULT_TEXTARAE_COLOR = "-fx-control-inner-background: #FFD200;",
             TXTAREA_BACKGROUND_COLOR = "-fx-background-color:  transparent;";
@@ -76,7 +77,7 @@ public class StickyNote {
             String text, String font, String fontColor, String backgroundColor, String textAreaColor) {
         try {
             // Get the FXML document
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StickyNoteUI.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("UI/StickyNoteUI.fxml"));
 
             StickyNoteController controller = new StickyNoteController(id, stage, text, font, fontColor, backgroundColor, textAreaColor);
             loader.setController(controller);
@@ -107,6 +108,14 @@ public class StickyNote {
             stage.setY(y);
 
             // Set the stage's width and height
+            if (width <= 150) {
+                width = 151;
+            }
+
+            if (height <= 150) {
+                height = 151;
+            }
+
             stage.setWidth(width);
             stage.setHeight(height);
 
