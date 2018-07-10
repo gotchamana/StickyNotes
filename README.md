@@ -1,16 +1,22 @@
 # StickyNotes
-A simple Sticky-Note program inspired by [indicator-stickynotes](https://launchpad.net/indicator-stickynotes).
+A simple Sticky-Note program inspired by [indicator-stickynotes](https://launchpad.net/indicator-stickynotes).   
+![Appearance](/demo/appearance.png)
 
 # Simple operations
 ## Add a new Sticky-Note
-
-## Settings
+![Add](/demo/add.gif)
 
 ## Read-only
+![Read-only](/demo/read-only.gif)
 
 ## Resize
+![Resize](/demo/resize.gif)
+
+## Settings
+![Set](/demo/settings.gif)
 
 ## Delete a Sticky-Note
+![Delete](/demo/delete.gif)
 
 # Copyright
 ## Icons
