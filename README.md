@@ -20,7 +20,7 @@ A simple Sticky-Note program inspired by [indicator-stickynotes](https://launchp
 
 # Download
 On Windows, you can just download the .exe file.<br>
-On Linux or Mac, you need to download the .jar file and ensure that you have installed the [JVM](https://java.com).
+On Linux or Mac, you need to download the .jar file and make sure that you have installed the [JVM](https://java.com).
 
 ## Auto execute on boot
 On Windows, if you want the StickyNotes to auto execute on boot, run the AutoExecute.bat in the folder. The batch file will create a shorcut in the Start-up folder.<br><br>
